@@ -23,3 +23,53 @@ cy_sub <- cy %>%
 skim(cy_sub)
 
 ### Next week: Basic Prediction Models
+set.seed(1234) # Set the random number generator for R
+
+# Get a random sample of the data for our training set
+cy_train <- cy_sub %>%
+  sample_frac(0.75)
+
+# Get the test set
+cy_test <- cy_sub %>%
+  setdiff(cy_train)
+
+
+# Fit our first model
+mod1 <- lm(Votepts ~ ERA + WHIP + K9, data = cy_train)
+mod1
+summary(mod1)
+
+# Function for getting RMSE
+get_lm_rmse_cy <- function(model, test_data){
+  test_pred <- predict(model, test_data)
+  return(sqrt(mean((test_pred - test_data$Votepts)^2)))
+}
+
+# Get the predicted values on the test set
+get_lm_rmse_cy(mod1, cy_test)
+
+
+# Fit our second model
+mod2 <- lm(Votepts ~ ERA + WHIP + K9 + W + IP + SV + closer, data = cy_train)
+mod2
+summary(mod2)
+
+# Get the predicted values on the test set
+get_lm_rmse_cy(mod2, cy_test)
+
+
+# Fit our third model
+mod3 <- lm(Votepts ~ ERA + WHIP + K9 + W + IP + SV, data = cy_train)
+mod3
+summary(mod3)
+
+get_lm_rmse_cy(mod3, cy_test)
+
+
+# Quadratic expansion
+mod4 <- lm(Votepts ~ ERA + I(ERA^2), data = cy_train)
+summary(mod4)
+
+
+
+
