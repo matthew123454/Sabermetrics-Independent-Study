@@ -68,8 +68,24 @@ get_lm_rmse_cy(mod3, cy_test)
 
 # Quadratic expansion
 mod4 <- lm(Votepts ~ ERA + I(ERA^2), data = cy_train)
+
+
+# Simple model
+mod5 <- lm(Votepts ~ ERA, data = cy_train)
+summary(mod5)
 summary(mod4)
 
+get_lm_rmse_cy(mod4, cy_test)
+get_lm_rmse_cy(mod5, cy_test)
 
 
+mod6 <- lm(Votepts ~ WHIP + closer, data = cy_train)
+mod7 <- lm(Votepts ~ WHIP + closer + WHIP*closer, data = cy_train)
+summary(mod6)
+summary(mod7)
 
+get_lm_rmse_cy(mod6, cy_test)
+get_lm_rmse_cy(mod7, cy_test)
+
+saveRDS(list(train = cy_train, test = cy_test), 
+        "./sandbox/cy_sub_train-test.RDS")
