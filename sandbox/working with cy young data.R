@@ -1,9 +1,10 @@
 library(tidyverse)
 library(skimr)
 
-# setwd("~/Desktop/Sabermetrics independint study/data")
-# setwd("./data")
-cy <- read_csv("~/Desktop/Sabermetrics independint study/data/cy-young-pitcher-data-2005-2015.csv")
+setwd("~/Desktop/Sabermetrics independint study/data")
+setwd("./data")
+cy <- read_csv("cy-young-pitcher-data-2005-2015.csv")
+# cy <- read_csv("~/Desktop/Sabermetrics independnt study/data/cy-young-pitcher-data-2005-2015.csv")
 
 head(cy)
 sort(names(cy))
@@ -35,7 +36,7 @@ cy_test <- cy_sub %>%
 
 
 # Fit our first model
-mod1 <- lm(Votepts ~ ERA + WHIP + K9, data = cy_train)
+mod1 <- lm(Votepts ~ ERA, data = cy_train)
 mod1
 summary(mod1)
 
