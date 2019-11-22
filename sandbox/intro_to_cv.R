@@ -14,7 +14,7 @@ fit_model <- function(resample_obj, formula){
 # example: fit_model(cy_train, "Votepts ~ ERA") # What do you think this is doing?
 
 # Load data
-setwd("~/Desktop/Sabermetrics independint study/data")
+#
 setwd("./data")
 cy <- read_csv("cy-young-pitcher-data-2005-2015.csv")
 
