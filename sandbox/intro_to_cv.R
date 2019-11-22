@@ -51,3 +51,11 @@ train_kfold_err %>%
 
 
 ###---Your turn: Amend lines 44-50 so that you fit a model that includes Wins, K9, WHIP, ERA, and ERA^2 as predictors.
+
+train_kfold_err <- train_kfold %>%
+  mutate(model_fit = map2(train, "Votepts ~ ERA + WHIP + W + K9 + ERA^2", fit_model), # fit your model to each fold
+         fold_err = map2(model_fit, test, mse)) # get the fold errors
+
+# Average the fold errors and take the square rood
+train_kfold_err %>%
+  summarize(mean_err = sqrt(mean(unlist(fold_err))))
