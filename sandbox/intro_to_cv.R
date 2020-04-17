@@ -1,7 +1,7 @@
 ###---Intro to cross-validation with modelR
 
 # Useful libraries
-library(modelr); library(tidyverse)
+library(modelr); library(tidyverse); library(ranger)
 
 # Useful function for fitting a model
 fit_model <- function(resample_obj, formula){
@@ -59,6 +59,16 @@ train_kfold_err <- train_kfold %>%
 train_kfold_err %>%
   summarize(mean_err = sqrt(mean(unlist(fold_err))))
 
+fit_rf = function(resamp){
+  data = resamp %>% as_tibble() %>% select(-Team, -Name, -Year)
+  return(ranger(Votepts ~ ., data))
+}
+
+mse_rf = function(ranger_mod, test){
+  dat = test %>% as_tibble()
+  pred = predict(ranger_mod, dat)
+  return(mean((dat$Votepts - pred$predictions)^2))
+}
 
 train_kfold_err <- train_kfold %>%
   mutate(model_fit_1 = map2(train, "Votepts ~ ERA + WHIP + W + K9 + ERA^2", fit_model), 
@@ -66,16 +76,19 @@ train_kfold_err <- train_kfold %>%
          model_fit_3 = map2(train, "Votepts ~ ERA + WHIP + W + K9 + ERA^2 + WHIP^2 + WHIP^3 + SV:closer", fit_model), 
          model_fit_4 = map2(train, "Votepts ~ poly(ERA, 3) + poly(WHIP, 2) + poly(W, 2) + poly(K9, 2) + closer", fit_model),
          model_fit_5 = map2(train, "Votepts ~ poly(ERA, 3) + poly(WHIP, 1) + poly(WPA, 1) + poly(FIP, 1) + K9 + W + closer", fit_model),
+         model_fit_6 = map(train, fit_rf),
          fold_err_1 = map2(model_fit_1, test, mse), 
          fold_err_2 = map2(model_fit_2, test, mse), 
          fold_err_3 = map2(model_fit_3, test, mse), 
          fold_err_4 = map2(model_fit_4, test, mse), 
-         fold_err_5 = map2(model_fit_5, test, mse)) %>%
+         fold_err_5 = map2(model_fit_5, test, mse), 
+         fold_err_6 = map2(model_fit_6, test, mse_rf)) %>%
   summarize(err_1 = sqrt(mean(unlist(fold_err_1))), 
             err_2 = sqrt(mean(unlist(fold_err_2))), 
             err_3 = sqrt(mean(unlist(fold_err_3))), 
             err_4 = sqrt(mean(unlist(fold_err_4))), 
-            err_5 = sqrt(mean(unlist(fold_err_5))))
+            err_5 = sqrt(mean(unlist(fold_err_5))), 
+            err_6 = sqrt(mean(unlist(fold_err_6))))
 train_kfold_err
 
 
