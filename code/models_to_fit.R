@@ -2,12 +2,13 @@
 
 # Useful libraries
 library(modelr); library(tidyverse); library(ranger)
+library(janitor)
 
 # Useful function for fitting a model
 fit_model <- function(resample_obj, formula){
   data <- resample_obj %>% as_tibble() # get a tibble from the resampled object
   fit <- lm(formula, data)
-    
+  
   return(fit)
 }
 
@@ -16,12 +17,39 @@ fit_model <- function(resample_obj, formula){
 # Load data
 #
 setwd("./data")
-cy <- read_csv("cy-young-pitcher-data-2005-2015.csv")
+cy <- read_csv("cy-young-pitcher-data-2005-2015.csv") %>%
+  clean_names() %>%
+  select(-x1)
+
+pct_to_numeric <- function(pct_string){
+  
+  return(as.numeric(gsub(" %", "", pct_string))/100)
+  
+}
+
+# pct_to_numeric(cy$krate)
+
+# Delete ' %' and convert to number (and maybe also divide by 100)
+cy <- cy %>%
+  mutate(krate = pct_to_numeric(krate), 
+         b_brate = pct_to_numeric(b_brate),
+         kb_brate = pct_to_numeric(kb_brate),
+         lo_bpct = pct_to_numeric(lo_bpct),
+         lob_1 = pct_to_numeric(lob_1),
+         ld_2 = pct_to_numeric(ld_2),
+         gb_2 = pct_to_numeric(gb_2),
+         fb_2 = pct_to_numeric(fb_2),
+         iffb_2 = pct_to_numeric(iffb_2),
+         hr_fb = pct_to_numeric(hr_fb),
+         ifh_2 = pct_to_numeric(ifh_2),
+         buh_2 = pct_to_numeric(buh_2),
+         fb_1 = pct_to_numeric(fb_1))
+
 
 cy_sub <- cy %>%
-  select(Name, Team, Year, Votepts, ERA, WHIP, K9, W, IP, SV, WPA, FIP) %>%
-  mutate(closer = as.integer(SV > 5)) %>%
-  filter(IP > 45, Votepts > 0)
+  select(-leadague, -tm, -city) %>%
+  mutate(closer = as.integer(sv > 5)) %>%
+  filter(ip > 45, votepts > 0)
 
 
 # Separate into train/test sets
@@ -42,12 +70,12 @@ train_kfold <- cy_train %>%
 
 # Fit the model holding out each fold, and then test it on the held out fold
 train_kfold_err <- train_kfold %>%
-  mutate(model_fit = map2(train, "Votepts ~ ERA + WHIP", fit_model), # fit your model to each fold
-         fold_err = map2(model_fit, test, mse)) # get the fold errors
+  mutate(model_fit = map2(train, "votepts ~ era + whip", fit_model), # fit your model to each fold
+         fold_err = map2_dbl(model_fit, test, mse)) # get the fold errors
 
 # Average the fold errors and take the square rood
 train_kfold_err %>%
-  summarize(mean_err = sqrt(mean(unlist(fold_err))))
+  summarize(mean_err = sqrt(mean(fold_err)))
 
 
 ###---Your turn: Amend lines 44-50 so that you fit a model that includes Wins, K9, WHIP, ERA, and ERA^2 as predictors.
