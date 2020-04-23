@@ -52,7 +52,7 @@ cy_sub <- cy %>%
   select(-leadague, -tm, -city) %>%
   mutate(closer = as.integer(sv > 5)) %>%
   filter(ip > 45, votepts > 0)
-
+ 
 
 # Separate into train/test sets
 set.seed(1234) # Set the random number generator for R
