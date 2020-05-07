@@ -19,7 +19,7 @@ fit_model <- function(resample_obj, formula){
 # Load data
 #
 setwd("./data")
-cy <- read_csv("cy-young-pitcher-data-2005-2015.csv") %>%
+cy <- read_c=sv("cy-young-pitcher-data-2005-2015.csv") %>%
   clean_names() %>%
   select(-x1)
 
@@ -31,9 +31,9 @@ pct_to_numeric <- function(pct_string){
 
 # pct_to_numeric(cy$krate)
 
-# Delete ' %' and convert to number (and maybe also divide by 100)
+# Delete ' %' and convert to number (and maybe also divide by 100) #reliefs ip=0 only if na, starting ip=0 only na
 cy <- cy %>%
-  mutate(krate = pct_to_numeric(krate), 
+  mutate(krate = pct_to_numeric(krate), #use****
          b_brate = pct_to_numeric(b_brate),
          kb_brate = pct_to_numeric(kb_brate),
          lo_bpct = pct_to_numeric(lo_bpct),
@@ -46,7 +46,14 @@ cy <- cy %>%
          ifh_2 = pct_to_numeric(ifh_2),
          buh_2 = pct_to_numeric(buh_2),
          fb_1 = pct_to_numeric(fb_1))
-
+replace_na(cy$starting, 0)
+cy$starting <-replace_na(cy$starting, 0)
+replace_na(cy$relieving, -0.5)
+cy$relieving <-replace_na(cy$relieving, -0.5)
+replace_na(cy$relief_ip, 0)
+cy$relief_ip <-replace_na(cy$relief_ip, 0)
+replace_na(cy$start_ip, 0)
+cy$start_ip <-replace_na(cy$start_ip, 0)
 
 cy_sub <- cy %>%
   select(-leadague, -tm, -city) %>%
@@ -82,7 +89,7 @@ train_kfold_err %>%
 
 ###---Your turn: Amend lines 44-50 so that you fit a model that includes Wins, K9, WHIP, ERA, and ERA^2 as predictors.
 train_kfold_err <- train_kfold %>%
-  mutate(model_fit = map2(train, "Votepts ~ ERA + WHIP + W + K9 + ERA^2", fit_model), # fit your model to each fold
+  mutate(model_fit = map2(train, "votepts ~ era + whip + w + k9 + era^2", fit_model), # fit your model to each fold
          fold_err = map2(model_fit, test, mse)) # get the fold errors
 
 # Average the fold errors and take the square rood
@@ -90,8 +97,8 @@ train_kfold_err %>%
   summarize(mean_err = sqrt(mean(unlist(fold_err))))
 
 fit_rf = function(resamp){
-  data = resamp %>% as_tibble() %>% select(-Team, -Name, -Year)
-  return(ranger(Votepts ~ ., data))
+  data = resamp %>% as_tibble() %>% select(-team, -name, -year)
+  return(ranger(votepts ~ ., data))
 }
 
 mse_rf = function(ranger_mod, test){
@@ -101,11 +108,11 @@ mse_rf = function(ranger_mod, test){
 }
 
 train_kfold_err <- train_kfold %>%
-  mutate(model_fit_1 = map2(train, "Votepts ~ ERA + WHIP + W + K9 + ERA^2", fit_model), 
-         model_fit_2 = map2(train, "Votepts ~ ERA + WHIP + W + K9 + ERA^2 + closer:ERA", fit_model), 
-         model_fit_3 = map2(train, "Votepts ~ ERA + WHIP + W + K9 + ERA^2 + WHIP^2 + WHIP^3 + SV:closer", fit_model), 
-         model_fit_4 = map2(train, "Votepts ~ poly(ERA, 3) + poly(WHIP, 2) + poly(W, 2) + poly(K9, 2) + closer", fit_model),
-         model_fit_5 = map2(train, "Votepts ~ poly(ERA, 3) + poly(WHIP, 1) + poly(WPA, 1) + poly(FIP, 1) + K9 + W + closer", fit_model),
+  mutate(model_fit_1 = map2(train, "votepts ~ era + whip + w + k9 + era^2", fit_model), 
+         model_fit_2 = map2(train, "votepts ~ era + whip + w + k9 + era^2 + closer:era", fit_model), 
+         model_fit_3 = map2(train, "votepts ~ era + whip + w + k9 + era^2 + whip^2 + whip^3 + sv:closer", fit_model), 
+         model_fit_4 = map2(train, "votepts ~ poly(era, 3) + poly(whip, 2) + poly(w, 2) + poly(k9, 2) + closer", fit_model),
+         model_fit_5 = map2(train, "votepts ~ poly(era, 3) + poly(whip, 1) + poly(wpa, 1) + poly(fip, 1) + k9 + w + closer", fit_model),
          model_fit_6 = map(train, fit_rf),
          fold_err_1 = map2(model_fit_1, test, mse), 
          fold_err_2 = map2(model_fit_2, test, mse), 
