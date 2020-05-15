@@ -126,6 +126,7 @@ train_kfold_err <- train_kfold %>%
             err_4 = sqrt(mean(unlist(fold_err_4))), 
             err_5 = sqrt(mean(unlist(fold_err_5))), 
             err_6 = sqrt(mean(unlist(fold_err_6))))
+
 train_kfold_err
 
 
