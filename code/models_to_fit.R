@@ -96,9 +96,24 @@ train_kfold_err <- train_kfold %>%
 train_kfold_err %>%
   summarize(mean_err = sqrt(mean(unlist(fold_err))))
 
-fit_rf = function(resamp, m){
+
+fit_rf = function(resamp, mtry = NULL){
+  
+  # Prep our data
   data = resamp %>% as_tibble() %>% select(-team, -name, -year)
-  return(ranger(votepts ~ ., data))
+  
+  if(is.null(mtry)){
+    
+    model <- ranger(votepts ~ ., data)
+    
+  } else {
+    
+    model <- ranger(votepts ~ ., data, mtry = mtry)
+    
+  }
+  
+  
+  return(model)
 }
 
 mse_rf = function(ranger_mod, test){
@@ -126,7 +141,25 @@ train_kfold_err <- train_kfold %>%
             err_4 = sqrt(mean(unlist(fold_err_4))), 
             err_5 = sqrt(mean(unlist(fold_err_5))), 
             err_6 = sqrt(mean(unlist(fold_err_6))))
+
 train_kfold_err
 
+ncol(cy_sub)
+
+### Tune a random forest
+train_kfold_err <- train_kfold %>%
+  crossing(mtry = 2:10) %>%
+  mutate(model_fit = map2(train, mtry, fit_rf), 
+         fold_err = map2_dbl(model_fit, test, mse_rf))
+
+rmse_mtry  <- train_kfold_err %>% 
+  group_by(mtry) %>%
+  summarize(rmse = sqrt(mean(fold_err))) 
+
+ggplot(rmse_mtry) + 
+  geom_line(aes(mtry, rmse))
 
 
+## HW FOR NEXT WEEK: Make plot that extends from mtry = 2 to mtry = 90.
+## Interpret that plot
+## Export the plot using ggsave() and add it to your report.
