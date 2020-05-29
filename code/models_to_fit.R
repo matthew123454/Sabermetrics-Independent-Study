@@ -160,6 +160,10 @@ ggplot(rmse_mtry) +
   geom_line(aes(mtry, rmse))
 
 
-## HW FOR NEXT WEEK: Make plot that extends from mtry = 2 to mtry = 90.
+## HW FOR NEXT WEEK: 
+## Figure out what lines 149-160 are doing. Add comments.
+## Figure out what the plot in lines 159-160 are doing. How would you interpret this?
+## Revise lines 149-160 to consider more values of mtry from 2 to 60.
+## Make plot that shows how good these mtry values perform.
 ## Interpret that plot
 ## Export the plot using ggsave() and add it to your report.
