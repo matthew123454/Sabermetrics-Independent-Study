@@ -96,7 +96,7 @@ train_kfold_err <- train_kfold %>%
 train_kfold_err %>%
   summarize(mean_err = sqrt(mean(unlist(fold_err))))
 
-fit_rf = function(resamp){
+fit_rf = function(resamp, m){
   data = resamp %>% as_tibble() %>% select(-team, -name, -year)
   return(ranger(votepts ~ ., data))
 }
@@ -104,7 +104,7 @@ fit_rf = function(resamp){
 mse_rf = function(ranger_mod, test){
   dat = test %>% as_tibble()
   pred = predict(ranger_mod, dat)
-  return(mean((dat$Votepts - pred$predictions)^2))
+  return(mean((dat$votepts - pred$predictions)^2))
 }
 
 train_kfold_err <- train_kfold %>%
@@ -119,7 +119,7 @@ train_kfold_err <- train_kfold %>%
          fold_err_3 = map2(model_fit_3, test, mse), 
          fold_err_4 = map2(model_fit_4, test, mse), 
          fold_err_5 = map2(model_fit_5, test, mse), 
-         fold_err_6 = map2(model_fit_6, test, mse_rf)) %>%
+         fold_err_6 = map2(model_fit_6, test, mse_rf)) %>% 
   summarize(err_1 = sqrt(mean(unlist(fold_err_1))), 
             err_2 = sqrt(mean(unlist(fold_err_2))), 
             err_3 = sqrt(mean(unlist(fold_err_3))), 
